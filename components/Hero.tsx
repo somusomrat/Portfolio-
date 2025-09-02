@@ -75,7 +75,7 @@ const Hero: React.FC<HeroProps> = ({ data, isEditMode, onUpdate }) => {
   };
 
   return (
-    <section id="about" className="min-h-screen flex items-center justify-center text-center py-20">
+    <section id="about" className="min-h-[500px] flex items-center justify-center text-center py-40">
       <div className="max-w-4xl">
         <div className="relative w-40 h-40 mx-auto mb-8">
             <img

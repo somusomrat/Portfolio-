@@ -9,7 +9,80 @@ import Contact from './components/Contact';
 import Footer from './components/Footer';
 import EditControls from './components/EditControls';
 import PasswordModal from './components/PasswordModal';
+import ScrollToTopButton from './components/ScrollToTopButton';
+import CustomCursor from './components/CustomCursor';
+import AnimatedSection from './components/AnimatedSection';
 import type { PortfolioData } from './types';
+
+// tsParticles is loaded from a script tag in index.html
+declare global {
+  interface Window {
+    tsParticles: any;
+  }
+}
+
+const particlesConfig = {
+  background: {
+    color: {
+      value: '#030712'
+    }
+  },
+  fpsLimit: 60,
+  interactivity: {
+    events: {
+      onHover: {
+        enable: true,
+        mode: 'repulse'
+      },
+      resize: true
+    },
+    modes: {
+      repulse: {
+        distance: 80,
+        duration: 0.4
+      }
+    }
+  },
+  particles: {
+    color: {
+      value: '#4b5563'
+    },
+    links: {
+      color: '#4b5563',
+      distance: 150,
+      enable: true,
+      opacity: 0.2,
+      width: 1
+    },
+    move: {
+      direction: 'none',
+      enable: true,
+      outModes: {
+        default: 'bounce'
+      },
+      random: false,
+      speed: 1,
+      straight: false
+    },
+    number: {
+      density: {
+        enable: true,
+      },
+      value: 80
+    },
+    opacity: {
+      value: 0.2
+    },
+    shape: {
+      type: 'circle'
+    },
+    size: {
+      value: { min: 1, max: 3 }
+    }
+  },
+  detectRetina: true
+};
+
 
 const App: React.FC = () => {
   const [portfolioData, setPortfolioData] = useState<PortfolioData | null>(null);
@@ -21,7 +94,7 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/portfolio.json')
+    fetch('portfolio.json')
       .then((res) => {
         if (!res.ok) {
           throw new Error(`Failed to fetch: ${res.status} ${res.statusText}`);
@@ -30,15 +103,27 @@ const App: React.FC = () => {
       })
       .then((data: PortfolioData) => {
         setPortfolioData(data);
-        setDraftData(JSON.parse(JSON.stringify(data))); // Deep copy for editing
+        setDraftData(JSON.parse(JSON.stringify(data)));
       })
       .catch((err) => {
         console.error("Failed to fetch portfolio data:", err);
         setError("Failed to load portfolio data. Please try refreshing the page.");
       })
       .finally(() => {
-        setLoading(false);
+        setTimeout(() => {
+          setLoading(false);
+          const preloader = document.getElementById('preloader');
+          if (preloader) {
+            preloader.classList.add('loaded');
+          }
+        }, 500); // Small delay for smoother transition
       });
+  }, []);
+
+  useEffect(() => {
+    if (window.tsParticles) {
+      window.tsParticles.load({ id: 'tsparticles', options: particlesConfig });
+    }
   }, []);
   
   const handleSave = () => {
@@ -51,13 +136,13 @@ const App: React.FC = () => {
     a.download = 'portfolio.json';
     a.click();
     URL.revokeObjectURL(url);
-    setPortfolioData(JSON.parse(JSON.stringify(draftData))); // Update live data
+    setPortfolioData(JSON.parse(JSON.stringify(draftData)));
     setIsEditMode(false);
     setIsAuthenticated(false);
   };
   
   const handleCancel = () => {
-    setDraftData(JSON.parse(JSON.stringify(portfolioData))); // Revert changes
+    setDraftData(JSON.parse(JSON.stringify(portfolioData)));
     setIsEditMode(false);
     setIsAuthenticated(false);
   };
@@ -66,7 +151,6 @@ const App: React.FC = () => {
     if (portfolioData?.editPassword) {
       setShowPasswordModal(true);
     } else {
-      // Fallback for portfolios without a password set, though UI should prevent this.
       console.warn("Edit mode toggled without a password. Set 'editPassword' in portfolio.json to secure editing.");
     }
   };
@@ -80,11 +164,7 @@ const App: React.FC = () => {
   const displayData = isEditMode ? draftData : portfolioData;
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white" role="status" aria-live="polite">
-        <div className="text-xl font-semibold">Loading Portfolio...</div>
-      </div>
-    );
+    return null; // The preloader in index.html is handling the loading view
   }
 
   if (error || !displayData) {
@@ -99,45 +179,55 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="bg-gray-900 min-h-screen font-sans">
+    <div className="bg-gray-900 min-h-screen font-sans relative">
+      <CustomCursor />
       <Header 
         name={displayData.name} 
         isEditMode={isEditMode}
         onUpdate={setDraftData}
       />
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <Hero 
-          data={displayData}
-          isEditMode={isEditMode}
-          onUpdate={setDraftData}
-        />
-        <Projects 
-            projects={displayData.projects}
-            isEditMode={isEditMode}
-            onUpdate={setDraftData}
-        />
-        <Skills 
-            skills={displayData.skills}
-            isEditMode={isEditMode}
-            onUpdate={setDraftData}
-        />
-        <Experience 
-            experience={displayData.experience}
-            isEditMode={isEditMode}
-            onUpdate={setDraftData}
-        />
-        <Contact 
-            contact={displayData.contact}
-            isEditMode={isEditMode}
-            onUpdate={setDraftData}
-        />
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <AnimatedSection>
+            <Hero 
+              data={displayData}
+              isEditMode={isEditMode}
+              onUpdate={setDraftData}
+            />
+        </AnimatedSection>
+        <AnimatedSection>
+            <Projects 
+                projects={displayData.projects}
+                isEditMode={isEditMode}
+                onUpdate={setDraftData}
+            />
+        </AnimatedSection>
+        <AnimatedSection>
+            <Skills 
+                skills={displayData.skills}
+                isEditMode={isEditMode}
+                onUpdate={setDraftData}
+            />
+        </AnimatedSection>
+        <AnimatedSection>
+            <Experience 
+                experience={displayData.experience}
+                isEditMode={isEditMode}
+                onUpdate={setDraftData}
+            />
+        </AnimatedSection>
+        <AnimatedSection>
+            <Contact 
+                contact={displayData.contact}
+                isEditMode={isEditMode}
+                onUpdate={setDraftData}
+            />
+        </AnimatedSection>
       </main>
       <Footer 
         name={displayData.name}
         isEditMode={isEditMode}
         onUpdate={setDraftData}
       />
-      {/* Show edit controls only if a password is set in the portfolio data */}
       {!!portfolioData?.editPassword && (
         <EditControls
           isEditMode={isEditMode}
@@ -153,6 +243,7 @@ const App: React.FC = () => {
           onCancel={() => setShowPasswordModal(false)}
         />
       )}
+      <ScrollToTopButton />
     </div>
   );
 };

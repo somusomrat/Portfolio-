@@ -1,39 +1,98 @@
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
   <head>
-    <meta charset="UTF-ag" />
+    <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Personal Portfolio</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-      /* Custom scrollbar for a more modern look */
-      ::-webkit-scrollbar {
-        width: 8px;
-      }
-      ::-webkit-scrollbar-track {
-        background: #111827; 
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #374151;
-        border-radius: 4px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #4b5563;
-      }
+      /* Custom scrollbar */
+      ::-webkit-scrollbar { width: 8px; }
+      ::-webkit-scrollbar-track { background: #030712; }
+      ::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+      ::-webkit-scrollbar-thumb:hover { background: #4b5563; }
       
       body {
         overflow-x: hidden;
+        cursor: none; /* Hide default cursor */
+      }
+      
+      /* Preloader Styles */
+      #preloader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #030712;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+      }
+      #preloader.loaded {
+        opacity: 0;
+        visibility: hidden;
+      }
+      .spinner {
+        width: 50px;
+        height: 50px;
+        border: 5px solid #4b5563;
+        border-top-color: #06b6d4;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
       }
 
-      /* Simple fade-in animation */
-      @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
+      /* Animated Background */
+      #tsparticles {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
       }
 
-      .animate-fade-in {
-        animation: fadeIn 0.5s ease-out forwards;
+      /* Custom Cursor */
+      .cursor, .cursor-follower {
+        position: fixed;
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 9999;
+        transform: translate(-50%, -50%);
+        transition: transform 0.1s ease-out, opacity 0.2s ease-out, width 0.3s ease-in-out, height 0.3s ease-in-out;
+      }
+      .cursor {
+        width: 8px;
+        height: 8px;
+        background-color: #06b6d4;
+      }
+      .cursor-follower {
+        width: 40px;
+        height: 40px;
+        background-color: rgba(6, 182, 212, 0.1);
+        border: 1px solid rgba(6, 182, 212, 0.3);
+      }
+      body:hover .cursor { opacity: 1; }
+      .cursor-follower.hover {
+         transform: translate(-50%, -50%) scale(1.5);
+         background-color: rgba(6, 182, 212, 0.2);
+      }
+
+      /* Section Animation */
+      .section-animate {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+      }
+      .section-animate.is-visible {
+        opacity: 1;
+        transform: translateY(0);
       }
     </style>
   <script type="importmap">
@@ -47,7 +106,12 @@
 </script>
 </head>
   <body class="bg-gray-900 text-gray-300">
+    <div id="preloader"><div class="spinner"></div></div>
+    <div id="tsparticles"></div>
+    <div class="cursor"></div>
+    <div class="cursor-follower"></div>
     <div id="root"></div>
+    <script src="https://cdn.jsdelivr.net/npm/tsparticles@3/tsparticles.bundle.min.js"></script>
     <script type="module" src="/index.tsx"></script>
   </body>
 </html>

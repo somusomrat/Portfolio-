@@ -163,7 +163,7 @@ const Projects: React.FC<ProjectsProps> = ({ projects, isEditMode, onUpdate }) =
           // Find original index to pass to update handler
           const originalIndex = projects.findIndex(p => p.title === project.title);
           return (
-            <div key={project.title} className="animate-fade-in">
+            <div key={project.title}>
               <ProjectCard 
                 project={project}
                 isEditMode={isEditMode}

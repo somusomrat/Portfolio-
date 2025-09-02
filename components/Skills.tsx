@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { Skill, PortfolioData } from '../types';
 import Editable from './Editable';
@@ -15,7 +14,7 @@ const SkillCategory: React.FC<SkillCategoryProps> = ({ title, skills, isEditMode
   if (skills.length === 0) return null;
 
   return (
-    <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
+    <div className="bg-gray-800 p-6 rounded-lg shadow-lg transition-shadow duration-300 hover:shadow-cyan-500/20">
       <h3 className="text-2xl font-bold text-cyan-400 mb-4">{title}</h3>
       <ul className="flex flex-wrap gap-3">
         {skills.map((skill, index) => (
@@ -27,7 +26,6 @@ const SkillCategory: React.FC<SkillCategoryProps> = ({ title, skills, isEditMode
               isEditing={isEditMode}
               value={skill.name}
               onChange={(e) => onUpdate({ ...skill, name: e.target.value }, categoryIndexStart + index)}
-              className="transition-transform duration-200 hover:scale-105 hover:bg-cyan-500 hover:text-white"
             />
           </li>
         ))}

@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useMemo } from 'react';
 import type { Project, PortfolioData } from '../types';
 import { ExternalLinkIcon, CodeIcon, CameraIcon } from './Icons';
 import Editable from './Editable';
@@ -32,7 +32,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, isEditMode, onUpdate
   };
 
   return (
-    <div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 flex flex-col">
+    <div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-cyan-500/30 transition-all duration-300 transform hover:-translate-y-2 flex flex-col group">
       <div className="relative">
         <img src={project.imageUrl} alt={project.title} className="w-full h-56 object-cover"/>
         {isEditMode && (
@@ -46,7 +46,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, isEditMode, onUpdate
             />
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white opacity-0 hover:opacity-100 transition-opacity duration-300"
+              className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"
               aria-label={`Change image for ${project.title}`}
             >
               <CameraIcon className="w-10 h-10" />
@@ -113,28 +113,65 @@ interface ProjectsProps {
 }
 
 const Projects: React.FC<ProjectsProps> = ({ projects, isEditMode, onUpdate }) => {
+  const [selectedTag, setSelectedTag] = useState('All');
+
+  const allTags = useMemo(() => ['All', ...new Set(projects.flatMap(p => p.tags))], [projects]);
   
+  const filteredProjects = useMemo(() => 
+    selectedTag === 'All'
+        ? projects
+        : projects.filter(p => p.tags.includes(selectedTag))
+  , [selectedTag, projects]);
+
   const handleProjectUpdate = (updatedProject: Project, index: number) => {
     onUpdate(prev => {
       if (!prev) return null;
+      // Find the original index to update the correct project
+      const originalIndex = prev.projects.findIndex(p => p.title === projects[index].title);
+      if (originalIndex === -1) return prev;
+      
       const newProjects = [...prev.projects];
-      newProjects[index] = updatedProject;
+      newProjects[originalIndex] = updatedProject;
       return { ...prev, projects: newProjects };
     });
   };
 
   return (
     <section id="projects" className="py-20">
-      <h2 className="text-4xl font-bold text-center text-white mb-12">My Projects</h2>
+      <h2 className="text-4xl font-bold text-center text-white mb-8">My Projects</h2>
+      
+      {!isEditMode && (
+        <div className="flex justify-center flex-wrap gap-3 mb-12">
+          {allTags.map(tag => (
+            <button
+              key={tag}
+              onClick={() => setSelectedTag(tag)}
+              className={`px-4 py-2 rounded-full font-medium text-sm transition-colors duration-300 ${
+                selectedTag === tag
+                  ? 'bg-cyan-500 text-white shadow-md'
+                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+              }`}
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
-        {projects.map((project, index) => (
-          <ProjectCard 
-            key={index} 
-            project={project}
-            isEditMode={isEditMode}
-            onUpdate={(updatedProject) => handleProjectUpdate(updatedProject, index)}
-          />
-        ))}
+        {filteredProjects.map((project, index) => {
+          // Find original index to pass to update handler
+          const originalIndex = projects.findIndex(p => p.title === project.title);
+          return (
+            <div key={project.title} className="animate-fade-in">
+              <ProjectCard 
+                project={project}
+                isEditMode={isEditMode}
+                onUpdate={(updatedProject) => handleProjectUpdate(updatedProject, originalIndex)}
+              />
+            </div>
+          );
+        })}
       </div>
     </section>
   );

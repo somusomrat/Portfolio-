@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import type { PortfolioData } from '../types';
 import { SocialIcon, CameraIcon } from './Icons';
 import Editable from './Editable';
@@ -9,9 +9,55 @@ interface HeroProps {
   onUpdate: React.Dispatch<React.SetStateAction<PortfolioData | null>>;
 }
 
+const useTypingEffect = (text: string, isEditMode: boolean, speed = 150, delay = 1000) => {
+    const [displayedText, setDisplayedText] = useState('');
+
+    useEffect(() => {
+        if (isEditMode) {
+            setDisplayedText(text);
+            return;
+        }
+
+        let i = 0;
+        let isDeleting = false;
+        // FIX: Replaced NodeJS.Timeout with ReturnType<typeof setTimeout> for browser compatibility.
+        let timeoutId: ReturnType<typeof setTimeout>;
+
+        const typing = () => {
+            if (isDeleting) {
+                if (i > 0) {
+                    setDisplayedText(prev => prev.slice(0, -1));
+                    i--;
+                    timeoutId = setTimeout(typing, speed / 2);
+                } else {
+                    isDeleting = false;
+                    timeoutId = setTimeout(typing, speed);
+                }
+            } else {
+                if (i < text.length) {
+                    setDisplayedText(prev => prev + text.charAt(i));
+                    i++;
+                    timeoutId = setTimeout(typing, speed);
+                } else {
+                    isDeleting = true;
+                    timeoutId = setTimeout(typing, delay);
+                }
+            }
+        };
+
+        timeoutId = setTimeout(typing, speed);
+
+        return () => clearTimeout(timeoutId);
+    }, [text, isEditMode, speed, delay]);
+
+    return displayedText;
+};
+
+
 const Hero: React.FC<HeroProps> = ({ data, isEditMode, onUpdate }) => {
   const { name, title, bio, contact, avatarUrl } = data;
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const animatedTitle = useTypingEffect(title, isEditMode);
 
   const handleFieldChange = (field: keyof PortfolioData) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     onUpdate(prev => prev ? { ...prev, [field]: e.target.value } : null);
@@ -66,13 +112,20 @@ const Hero: React.FC<HeroProps> = ({ data, isEditMode, onUpdate }) => {
             inputClassName="text-5xl md:text-7xl font-extrabold w-full text-center"
            />
         </h1>
-        <Editable
-            isEditing={isEditMode}
-            value={title}
-            onChange={handleFieldChange('title')}
-            className="text-2xl md:text-3xl font-semibold text-gray-300 mb-6"
-            inputClassName="w-full text-center"
-        />
+         {isEditMode ? (
+            <Editable
+                isEditing={true}
+                value={title}
+                onChange={handleFieldChange('title')}
+                className="text-2xl md:text-3xl font-semibold text-gray-300 mb-6"
+                inputClassName="w-full text-center"
+            />
+         ) : (
+            <h2 className="text-2xl md:text-3xl font-semibold text-gray-300 mb-6 h-10">
+                {animatedTitle}
+                <span className="animate-ping">|</span>
+            </h2>
+         )}
         <Editable
             isEditing={isEditMode}
             value={bio}
@@ -96,7 +149,7 @@ const Hero: React.FC<HeroProps> = ({ data, isEditMode, onUpdate }) => {
           ))}
         </div>
         <div className="mt-12">
-            <a href={`mailto:${contact.email}`} className="bg-cyan-500 text-white font-bold py-3 px-8 rounded-full hover:bg-cyan-600 transition-all duration-300 text-lg shadow-lg hover:shadow-cyan-500/50">
+            <a href={`mailto:${contact.email}`} className="bg-cyan-500 text-white font-bold py-3 px-8 rounded-full hover:bg-cyan-600 transition-all duration-300 text-lg shadow-lg hover:shadow-cyan-500/50 transform hover:scale-105">
                 Get In Touch
             </a>
         </div>
